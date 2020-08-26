@@ -1,0 +1,67 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+    <h2>{{ listing.title }}</h2>
+    {% if user.is_authenticated %}
+        {% if listing in watchlist %}
+            <a href="{% url 'removefromwatchlist' listing.id %}">Remove Listing From Your Watchlist</a>
+        {% endif %}
+        {% if listing not in watchlist %}
+            <a href="{% url 'addtowatchlist' listing.id %}">Add Listing To Your Watchlist</a><br>
+        {% endif %}
+
+    {% endif %}
+    <br>
+    Category: {{ listing.category }}<br>
+    <br>
+    Listed By: {{ listing.listed_by }}<br>
+    <br>
+    <img src="{{ listing.image_url }}" alt="{{ listing.title }}" height="225"><br>
+    <br>
+    Current Bid: ${{ listing.current_bid }}<br>
+    <br>
+    {% if user == listing.listed_by %}
+        {% if listing.auction_open == True %}
+            <form action="{% url 'close_auction' listing.id %}" method="POST">
+                {% csrf_token %}
+                <input type="submit" value="Close Auction"><br>
+            </form>
+        {% endif %}
+    {% endif %}
+    <br>
+    {% if user.is_authenticated %}
+        {% if listing.auction_open == True %}
+            <form action="{% url 'newbid' listing.id %}" method="POST">
+                {% csrf_token %}
+                <label for="new_bid">Your Bid:</label><br>
+                <input type="number" id="new_bid" name="new_bid" value="{{ listing.current_bid }}" min="{{ listing.current_bid }}" step=1><br>
+                <input type="submit" value="Submit">
+            </form>
+        {% endif %}
+        {% if listing.auction_open == False %}
+            <h3>This Auction Is Now Closed!</h3>
+            WINNER: {{ winner }}
+        {% endif %}
+    {% endif %}
+
+    <br>
+    Description: {{ listing.description }}<br>
+    <br>
+    {% if user.is_authenticated %}
+        <form action="{% url 'newcomment' listing.id %}" method="POST">
+            {% csrf_token %}
+            <label for="new_comment">New Comment:</label><br>
+            <textarea id="new_comment" name="new_comment"></textarea><br>
+            <input type="submit" value="Submit"><br>
+        </form>
+    {% endif %}
+    <br>
+    Comments:<br>
+    <ul>
+        {% for comment in comments %}
+            <li>
+                {{ comment }}
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}
